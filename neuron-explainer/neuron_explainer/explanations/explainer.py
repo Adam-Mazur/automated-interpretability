@@ -62,9 +62,6 @@ class ContextSize(int, Enum):
         raise ValueError(f"{i} is not a valid ContextSize")
 
 
-HARMONY_V4_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4-1106-preview"]
-
-
 class NeuronExplainer(ABC):
     """
     Abstract base class for Explainer classes that generate explanations from subclass-specific
@@ -82,12 +79,6 @@ class NeuronExplainer(ABC):
         max_concurrent: Optional[int] = 10,
         cache: bool = False,
     ):
-        if prompt_format == PromptFormat.HARMONY_V4:
-            assert model_name in HARMONY_V4_MODELS
-        elif prompt_format in [PromptFormat.NONE, PromptFormat.INSTRUCTION_FOLLOWING]:
-            assert model_name not in HARMONY_V4_MODELS
-        else:
-            raise ValueError(f"Unhandled prompt format {prompt_format}")
 
         self.model_name = model_name
         self.prompt_format = prompt_format

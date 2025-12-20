@@ -80,13 +80,12 @@ def exponential_backoff(
     return decorate
 
 
-API_KEY = os.getenv("OPENAI_API_KEY")
-assert API_KEY, "Please set the OPENAI_API_KEY environment variable"
-API_HTTP_HEADERS = {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer " + API_KEY,
-}
-BASE_API_URL = "https://api.openai.com/v1"
+API_KEY = os.getenv("NEURON_EXPLAINER_API_KEY", os.getenv("OPENAI_API_KEY", ""))
+BASE_API_URL = os.getenv("NEURON_EXPLAINER_API_BASE", "https://api.openai.com/v1")
+
+API_HTTP_HEADERS = {"Content-Type": "application/json"}
+if API_KEY:
+    API_HTTP_HEADERS["Authorization"] = f"Bearer {API_KEY}"
 
 
 class ApiClient:
