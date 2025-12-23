@@ -14,8 +14,11 @@ setup(
         "numpy",
         "pytest",
         "orjson",
+        "torch",
+        "h5py",
+        "tqdm",
     ],
     url="",
     description="",
-    python_requires='>=3.9',
+    python_requires=">=3.9",
 )
