@@ -57,14 +57,20 @@ async def main():
     from neuron_explainer.explanations.simulator import ExplanationNeuronSimulator
     from neuron_explainer.fast_dataclasses.fast_dataclasses import loads
     from pathlib import Path
+    import random
+
+    random.seed(42)
 
     activations_path = Path(args.activations_path)
     output_path = Path(args.output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    blob_paths = list(sorted(activations_path.glob("*.blob")))
+    random.shuffle(blob_paths)
+
     for feature_idx in range(args.n_features):
-        print(f"Processing feature {feature_idx}...")
-        feature_path = activations_path / f"{feature_idx}.blob"
+        feature_path = blob_paths[feature_idx]
+        print(f"Processing feature {feature_idx} from path: {feature_path}...")
         with open(feature_path, "rb") as f:
             feature_record = loads(f.read())
 
