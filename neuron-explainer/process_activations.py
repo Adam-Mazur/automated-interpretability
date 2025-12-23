@@ -76,25 +76,41 @@ def process(h5_path: Path, path: Path, *, layer_index: int = 0) -> None:
                 activation_maxes_ds[:, feat_n], dtype=np.float32
             )
 
-            top_k = min(TOTAL_EXAMPLES, n_fragments)
-            sorted_indices = np.argsort(activation_maxes)[::-1]
-            top_indices = [int(idx) for idx in sorted_indices[:top_k]]
-            top_activation_records = [
-                _build_activation_record(token_strs_ds, activations_ds, feat_n, idx)
-                for idx in top_indices
-                if not np.isnan(activation_maxes[idx])
-            ]
+            top_activation_records: List[ActivationRecord] = []
+            sorted_indices = np.argsort(activation_maxes)[::-1].tolist()
+            for idx in sorted_indices:
+                if len(top_activation_records) >= TOTAL_EXAMPLES:
+                    break
+                if np.isnan(activation_maxes[idx]) or activation_maxes[idx] == 0:
+                    continue
+                top_activation_records.append(
+                    _build_activation_record(token_strs_ds, activations_ds, feat_n, idx)
+                )
+            else:
+                print(
+                    f"Warning: Feature {feat_n} only has "
+                    f"{len(top_activation_records)} valid top activations"
+                    "Skipping the feature."
+                )
+                continue
 
             random_activation_records: List[ActivationRecord] = []
             random_ordering = torch.randperm(n_fragments).tolist()
             for idx in random_ordering:
                 if len(random_activation_records) >= TOTAL_EXAMPLES:
                     break
-                if activation_maxes[idx] == 0 or np.isnan(activation_maxes[idx]):
+                if np.isnan(activation_maxes[idx]) or activation_maxes[idx] == 0:
                     continue
                 random_activation_records.append(
                     _build_activation_record(token_strs_ds, activations_ds, feat_n, idx)
                 )
+            else:
+                print(
+                    f"Warning: Feature {feat_n} only has "
+                    f"{len(random_activation_records)} valid random activations"
+                    "Skipping the feature."
+                )
+                continue
 
             neuron_record = NeuronRecord(
                 neuron_id=NeuronId(layer_index=layer_index, neuron_index=feat_n),
