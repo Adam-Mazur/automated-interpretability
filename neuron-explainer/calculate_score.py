@@ -10,6 +10,21 @@ def save_result(path, result_dict):
         f.flush()
 
 
+def sanitize_tokens(tokens):
+    new_tokens = []
+    for token in tokens:
+        new_tokens.append(token.replace("Ġ", "").replace("Ċ", ""))
+    return new_tokens
+
+
+def print_simulations(simulations):
+    for s in simulations:
+        for t, ea, ta in zip(
+            s.simulation.tokens, s.simulation.expected_activations, s.true_activations
+        ):
+            print(f"{t}\t{ea:.4f}\t{ta:.4f}")
+
+
 async def main():
     parser = argparse.ArgumentParser(
         description="Calculate the autointerpretability scores"
@@ -73,6 +88,16 @@ async def main():
         print(f"Processing feature {feature_idx} from path: {feature_path}...")
         with open(feature_path, "rb") as f:
             feature_record = loads(f.read())
+
+        for i in range(len(feature_record.random_sample)):
+            feature_record.random_sample[i].tokens = sanitize_tokens(
+                feature_record.random_sample[i].tokens
+            )
+
+        for i in range(len(feature_record.most_positive_activation_records)):
+            feature_record.most_positive_activation_records[i].tokens = sanitize_tokens(
+                feature_record.most_positive_activation_records[i].tokens
+            )
 
         slice_params = ActivationRecordSliceParams(n_examples_per_split=5)
         train_activation_records = feature_record.train_activation_records(
